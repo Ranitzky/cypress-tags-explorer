@@ -14,6 +14,12 @@ A powerful VS Code extension to easily manage, view, and organize Cypress tags r
 - **Click-to-Open**: Click on any test in the list to instantly jump to the corresponding line in your editor, making it effortless to add or reassign tags.
 - **Inline Renaming**: Rename tags across your entire workspace directly from the UI. The extension safely updates your code using native VS Code `WorkspaceEdit` features, preserving your formatting.
 
+## Usage
+
+1. Open the Command Palette in VS Code (`Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows/Linux).
+2. Search for and execute the command: **"Cypress Tags Explorer: Open"**.
+3. The Tags Explorer webview will open, displaying all tags and tests in your configured Cypress directory.
+
 ## Setup & Configuration
 
 By default, the extension scans the `cypress/e2e` folder for `*.cy.ts` and `*.cy.js` files. 
