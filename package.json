@@ -1,0 +1,54 @@
+{
+  "name": "tags-explorer",
+  "displayName": "Cypress Tags Explorer",
+  "description": "Manage Cypress Tags",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "tags-explorer.open",
+        "title": "Cypress Tags Explorer: Open"
+      }
+    ],
+    "configuration": {
+      "title": "Cypress Tags Explorer",
+      "properties": {
+        "tagsExplorer.cypressFolder": {
+          "type": "string",
+          "default": "cypress/e2e",
+          "description": "Folder where Cypress tests are located."
+        },
+        "tagsExplorer.fileExtensions": {
+          "type": "string",
+          "default": "*.cy.ts,*.cy.js",
+          "description": "Comma-separated list of test file extensions."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package && npm run build:webview",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "build:webview": "esbuild ./src/webview/main.ts --bundle --outfile=dist/webview.js --format=esm",
+    "build:all": "npm run package && npm run build:webview"
+  },
+  "devDependencies": {
+    "@types/node": "^18.x",
+    "@types/vscode": "^1.80.0",
+    "esbuild": "^0.19.2"
+  },
+  "dependencies": {
+    "@vscode/webview-ui-toolkit": "^1.2.2",
+    "typescript": "^5.2.2"
+  }
+}
