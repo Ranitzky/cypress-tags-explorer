@@ -1,2 +1,4 @@
-/demo
-/node_modules
+node_modules/
+out/
+vsc-extension-quickstart.md
+*.vsix

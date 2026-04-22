@@ -57,6 +57,9 @@ export class TagExplorerPanel {
                         font-family: var(--vscode-font-family);
                     }
                     .container { display: flex; flex-direction: column; gap: 20px; }
+                    details[open] .tag-arrow {
+                        transform: rotate(90deg);
+                    }
                 </style>
             </head>
             <body>
