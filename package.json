@@ -1,10 +1,15 @@
 {
-  "name": "tags-explorer",
+  "name": "cypress-tags-explorer",
   "displayName": "Cypress Tags Explorer",
   "description": "Manage Cypress Tags",
   "version": "0.0.1",
+  "publisher": "ricowilcke",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.80.0"
+  },
+  "repository": {
+    "url": "https://github.com/Ranitzky/cypress-tags-explorer"
   },
   "categories": [
     "Other"
@@ -40,7 +45,9 @@
     "watch": "tsc -watch -p ./",
     "package": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
     "build:webview": "esbuild ./src/webview/main.ts --bundle --outfile=dist/webview.js --format=esm",
-    "build:all": "npm run package && npm run build:webview"
+    "build:all": "npm run package && npm run build:webview",
+    "build": "vsce package",
+    "deploy": "vsce publish"
   },
   "devDependencies": {
     "@types/node": "^18.x",
