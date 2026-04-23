@@ -63,6 +63,15 @@ export class TagExplorerPanel {
                 </style>
             </head>
             <body>
+                <div id="filter-bar" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;">
+                    <vscode-text-field id="filter-input" placeholder="Filter tags, filenames, titles..." style="width: 100%;"></vscode-text-field>
+                    <div style="display: flex; gap: 15px; align-items: center; font-size: 12px; flex-wrap: wrap;">
+                        <span style="opacity: 0.8;">Search in:</span>
+                        <vscode-checkbox id="filter-opt-tags" checked>Tags</vscode-checkbox>
+                        <vscode-checkbox id="filter-opt-filenames" checked>Filenames</vscode-checkbox>
+                        <vscode-checkbox id="filter-opt-titles" checked>Titles (describe/context/it)</vscode-checkbox>
+                    </div>
+                </div>
                 <div id="app">Loading...</div>
             </body>
             </html>`;

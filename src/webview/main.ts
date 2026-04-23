@@ -1,4 +1,4 @@
-import { provideVSCodeDesignSystem, vsCodeBadge, vsCodeButton, vsCodeDivider, vsCodePanels, vsCodePanelTab, vsCodePanelView, vsCodeTextField } from '@vscode/webview-ui-toolkit';
+import { provideVSCodeDesignSystem, vsCodeBadge, vsCodeButton, vsCodeDivider, vsCodePanels, vsCodePanelTab, vsCodePanelView, vsCodeTextField, vsCodeCheckbox } from '@vscode/webview-ui-toolkit';
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
@@ -7,13 +7,41 @@ provideVSCodeDesignSystem().register(
   vsCodePanelView(),
   vsCodeTextField(),
   vsCodeDivider(),
-  vsCodeBadge()
+  vsCodeBadge(),
+  vsCodeCheckbox()
 );
 
 const vscode = acquireVsCodeApi();
 
 let testsData: any[] = [];
 let editingTag: string | null = null;
+
+let filterText = '';
+let filterTags = true;
+let filterFilenames = true;
+let filterTestTitles = true;
+
+window.addEventListener('load', () => {
+    const filterInput = document.getElementById('filter-input') as any;
+    if (filterInput) {
+        filterInput.addEventListener('input', (e: any) => {
+            filterText = e.target.value;
+            render();
+        });
+    }
+
+    ['tags', 'filenames', 'titles'].forEach(opt => {
+        const cb = document.getElementById(`filter-opt-${opt}`) as any;
+        if (cb) {
+            cb.addEventListener('change', (e: any) => {
+                if (opt === 'tags') filterTags = e.target.checked;
+                if (opt === 'filenames') filterFilenames = e.target.checked;
+                if (opt === 'titles') filterTestTitles = e.target.checked;
+                render();
+            });
+        }
+    });
+});
 
 window.addEventListener('message', event => {
     const message = event.data;
@@ -26,15 +54,33 @@ window.addEventListener('message', event => {
     }
 });
 
-function flattenTests(tests: any[]): any[] {
+function flattenTests(tests: any[], parentNames: string[] = []): any[] {
     let flat: any[] = [];
     for (const t of tests) {
+        const currentNames = [...parentNames, t.name];
+        t.fullName = currentNames.join(' > ');
         flat.push(t);
         if (t.children && t.children.length > 0) {
-            flat.push(...flattenTests(t.children));
+            flat.push(...flattenTests(t.children, currentNames));
         }
     }
     return flat;
+}
+
+function matchesFilter(t: any): boolean {
+    if (!filterText) return true;
+    const lowerFilter = filterText.toLowerCase();
+
+    if (filterTags && t.tags && t.tags.some((tag: string) => tag.toLowerCase().includes(lowerFilter))) {
+        return true;
+    }
+    if (filterFilenames && t.filePath && t.filePath.toLowerCase().includes(lowerFilter)) {
+        return true;
+    }
+    if (filterTestTitles && t.fullName && t.fullName.toLowerCase().includes(lowerFilter)) {
+        return true;
+    }
+    return false;
 }
 
 function render() {
@@ -44,8 +90,10 @@ function render() {
     const tagsMap = new Map<string, any[]>();
     const untaggedTests: any[] = [];
 
+    const filteredTests = flatTests.filter(matchesFilter);
+
     // Grouping
-    for (const t of flatTests) {
+    for (const t of filteredTests) {
         // Only count 'it' blocks for runnable tests, or all?
         // User said: "tests ohne tags bekommen eine eigene rubrik. tags werden vererbt, describe, context, it sind die 3 ebenen."
         // We will show 'it' blocks as the main tests, but also context/describe if they have tags and no children?

@@ -3812,6 +3812,7 @@ var keyArrowUp = "ArrowUp";
 var keyEnter = "Enter";
 var keyHome = "Home";
 var keyEnd = "End";
+var keySpace = " ";
 
 // node_modules/@microsoft/fast-web-utilities/dist/numbers.js
 function limit(min, max, value) {
@@ -4294,6 +4295,66 @@ function FormAssociated(BaseCtor) {
   observable(C.prototype, "value");
   return C;
 }
+function CheckableFormAssociated(BaseCtor) {
+  class C extends FormAssociated(BaseCtor) {
+  }
+  class D extends C {
+    constructor(...args) {
+      super(args);
+      this.dirtyChecked = false;
+      this.checkedAttribute = false;
+      this.checked = false;
+      this.dirtyChecked = false;
+    }
+    checkedAttributeChanged() {
+      this.defaultChecked = this.checkedAttribute;
+    }
+    /**
+     * @internal
+     */
+    defaultCheckedChanged() {
+      if (!this.dirtyChecked) {
+        this.checked = this.defaultChecked;
+        this.dirtyChecked = false;
+      }
+    }
+    checkedChanged(prev, next) {
+      if (!this.dirtyChecked) {
+        this.dirtyChecked = true;
+      }
+      this.currentChecked = this.checked;
+      this.updateForm();
+      if (this.proxy instanceof HTMLInputElement) {
+        this.proxy.checked = this.checked;
+      }
+      if (prev !== void 0) {
+        this.$emit("change");
+      }
+      this.validate();
+    }
+    currentCheckedChanged(prev, next) {
+      this.checked = this.currentChecked;
+    }
+    updateForm() {
+      const value = this.checked ? this.value : null;
+      this.setFormValue(value, value);
+    }
+    connectedCallback() {
+      super.connectedCallback();
+      this.updateForm();
+    }
+    formResetCallback() {
+      super.formResetCallback();
+      this.checked = !!this.checkedAttribute;
+      this.dirtyChecked = false;
+    }
+  }
+  attr({ attribute: "checked", mode: "boolean" })(D.prototype, "checkedAttribute");
+  attr({ attribute: "current-checked", converter: booleanConverter })(D.prototype, "currentChecked");
+  observable(D.prototype, "defaultChecked");
+  observable(D.prototype, "checked");
+  return D;
+}
 
 // node_modules/@microsoft/fast-foundation/dist/esm/button/button.form-associated.js
 var _Button = class extends FoundationElement {
@@ -4445,6 +4506,91 @@ __decorate([
 ], DelegatesARIAButton.prototype, "ariaPressed", void 0);
 applyMixins(DelegatesARIAButton, ARIAGlobalStatesAndProperties);
 applyMixins(Button, StartEnd, DelegatesARIAButton);
+
+// node_modules/@microsoft/fast-foundation/dist/esm/checkbox/checkbox.template.js
+var checkboxTemplate = (context, definition) => html`
+    <template
+        role="checkbox"
+        aria-checked="${(x) => x.checked}"
+        aria-required="${(x) => x.required}"
+        aria-disabled="${(x) => x.disabled}"
+        aria-readonly="${(x) => x.readOnly}"
+        tabindex="${(x) => x.disabled ? null : 0}"
+        @keypress="${(x, c) => x.keypressHandler(c.event)}"
+        @click="${(x, c) => x.clickHandler(c.event)}"
+        class="${(x) => x.readOnly ? "readonly" : ""} ${(x) => x.checked ? "checked" : ""} ${(x) => x.indeterminate ? "indeterminate" : ""}"
+    >
+        <div part="control" class="control">
+            <slot name="checked-indicator">
+                ${definition.checkedIndicator || ""}
+            </slot>
+            <slot name="indeterminate-indicator">
+                ${definition.indeterminateIndicator || ""}
+            </slot>
+        </div>
+        <label
+            part="label"
+            class="${(x) => x.defaultSlottedNodes && x.defaultSlottedNodes.length ? "label" : "label label__hidden"}"
+        >
+            <slot ${slotted("defaultSlottedNodes")}></slot>
+        </label>
+    </template>
+`;
+
+// node_modules/@microsoft/fast-foundation/dist/esm/checkbox/checkbox.form-associated.js
+var _Checkbox = class extends FoundationElement {
+};
+var FormAssociatedCheckbox = class extends CheckableFormAssociated(_Checkbox) {
+  constructor() {
+    super(...arguments);
+    this.proxy = document.createElement("input");
+  }
+};
+
+// node_modules/@microsoft/fast-foundation/dist/esm/checkbox/checkbox.js
+var Checkbox = class extends FormAssociatedCheckbox {
+  constructor() {
+    super();
+    this.initialValue = "on";
+    this.indeterminate = false;
+    this.keypressHandler = (e) => {
+      if (this.readOnly) {
+        return;
+      }
+      switch (e.key) {
+        case keySpace:
+          if (this.indeterminate) {
+            this.indeterminate = false;
+          }
+          this.checked = !this.checked;
+          break;
+      }
+    };
+    this.clickHandler = (e) => {
+      if (!this.disabled && !this.readOnly) {
+        if (this.indeterminate) {
+          this.indeterminate = false;
+        }
+        this.checked = !this.checked;
+      }
+    };
+    this.proxy.setAttribute("type", "checkbox");
+  }
+  readOnlyChanged() {
+    if (this.proxy instanceof HTMLInputElement) {
+      this.proxy.readOnly = this.readOnly;
+    }
+  }
+};
+__decorate([
+  attr({ attribute: "readonly", mode: "boolean" })
+], Checkbox.prototype, "readOnly", void 0);
+__decorate([
+  observable
+], Checkbox.prototype, "defaultSlottedNodes", void 0);
+__decorate([
+  observable
+], Checkbox.prototype, "indeterminate", void 0);
 
 // node_modules/@microsoft/fast-foundation/dist/esm/utilities/composed-parent.js
 function composedParent(element) {
@@ -6447,6 +6593,126 @@ var vsCodeButton = Button2.compose({
   }
 });
 
+// node_modules/@vscode/webview-ui-toolkit/dist/checkbox/checkbox.styles.js
+var checkboxStyles = (context, defintiion) => css`
+	${display("inline-flex")} :host {
+		align-items: center;
+		outline: none;
+		margin: calc(${designUnit} * 1px) 0;
+		user-select: none;
+		font-size: ${typeRampBaseFontSize};
+		line-height: ${typeRampBaseLineHeight};
+	}
+	.control {
+		position: relative;
+		width: calc(${designUnit} * 4px + 2px);
+		height: calc(${designUnit} * 4px + 2px);
+		box-sizing: border-box;
+		border-radius: calc(${checkboxCornerRadius} * 1px);
+		border: calc(${borderWidth} * 1px) solid ${checkboxBorder};
+		background: ${checkboxBackground};
+		outline: none;
+		cursor: pointer;
+	}
+	.label {
+		font-family: ${fontFamily};
+		color: ${foreground};
+		padding-inline-start: calc(${designUnit} * 2px + 2px);
+		margin-inline-end: calc(${designUnit} * 2px + 2px);
+		cursor: pointer;
+	}
+	.label__hidden {
+		display: none;
+		visibility: hidden;
+	}
+	.checked-indicator {
+		width: 100%;
+		height: 100%;
+		display: block;
+		fill: ${foreground};
+		opacity: 0;
+		pointer-events: none;
+	}
+	.indeterminate-indicator {
+		border-radius: 2px;
+		background: ${foreground};
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 50%;
+		height: 50%;
+		transform: translate(-50%, -50%);
+		opacity: 0;
+	}
+	:host(:enabled) .control:hover {
+		background: ${checkboxBackground};
+		border-color: ${checkboxBorder};
+	}
+	:host(:enabled) .control:active {
+		background: ${checkboxBackground};
+		border-color: ${focusBorder};
+	}
+	:host(:${focusVisible}) .control {
+		border: calc(${borderWidth} * 1px) solid ${focusBorder};
+	}
+	:host(.disabled) .label,
+	:host(.readonly) .label,
+	:host(.readonly) .control,
+	:host(.disabled) .control {
+		cursor: ${disabledCursor};
+	}
+	:host(.checked:not(.indeterminate)) .checked-indicator,
+	:host(.indeterminate) .indeterminate-indicator {
+		opacity: 1;
+	}
+	:host(.disabled) {
+		opacity: ${disabledOpacity};
+	}
+`;
+
+// node_modules/@vscode/webview-ui-toolkit/dist/checkbox/index.js
+var Checkbox2 = class extends Checkbox {
+  /**
+   * Component lifecycle method that runs when the component is inserted
+   * into the DOM.
+   *
+   * @internal
+   */
+  connectedCallback() {
+    super.connectedCallback();
+    if (this.textContent) {
+      this.setAttribute("aria-label", this.textContent);
+    } else {
+      this.setAttribute("aria-label", "Checkbox");
+    }
+  }
+};
+var vsCodeCheckbox = Checkbox2.compose({
+  baseName: "checkbox",
+  template: checkboxTemplate,
+  styles: checkboxStyles,
+  checkedIndicator: `
+		<svg 
+			part="checked-indicator"
+			class="checked-indicator"
+			width="16" 
+			height="16" 
+			viewBox="0 0 16 16" 
+			xmlns="http://www.w3.org/2000/svg" 
+			fill="currentColor"
+		>
+			<path 
+				fill-rule="evenodd" 
+				clip-rule="evenodd" 
+				d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z"
+			/>
+		</svg>
+	`,
+  indeterminateIndicator: `
+		<div part="indeterminate-indicator" class="indeterminate-indicator"></div>
+	`
+});
+
 // node_modules/@vscode/webview-ui-toolkit/dist/divider/divider.styles.js
 var dividerStyles = (context, definition) => css`
 	${display("block")} :host {
@@ -6764,11 +7030,39 @@ provideVSCodeDesignSystem().register(
   vsCodePanelView(),
   vsCodeTextField(),
   vsCodeDivider(),
-  vsCodeBadge()
+  vsCodeBadge(),
+  vsCodeCheckbox()
 );
 var vscode = acquireVsCodeApi();
 var testsData = [];
 var editingTag = null;
+var filterText = "";
+var filterTags = true;
+var filterFilenames = true;
+var filterTestTitles = true;
+window.addEventListener("load", () => {
+  const filterInput = document.getElementById("filter-input");
+  if (filterInput) {
+    filterInput.addEventListener("input", (e) => {
+      filterText = e.target.value;
+      render();
+    });
+  }
+  ["tags", "filenames", "titles"].forEach((opt) => {
+    const cb = document.getElementById(`filter-opt-${opt}`);
+    if (cb) {
+      cb.addEventListener("change", (e) => {
+        if (opt === "tags")
+          filterTags = e.target.checked;
+        if (opt === "filenames")
+          filterFilenames = e.target.checked;
+        if (opt === "titles")
+          filterTestTitles = e.target.checked;
+        render();
+      });
+    }
+  });
+});
 window.addEventListener("message", (event) => {
   const message = event.data;
   switch (message.command) {
@@ -6779,22 +7073,40 @@ window.addEventListener("message", (event) => {
       break;
   }
 });
-function flattenTests(tests) {
+function flattenTests(tests, parentNames = []) {
   let flat = [];
   for (const t of tests) {
+    const currentNames = [...parentNames, t.name];
+    t.fullName = currentNames.join(" > ");
     flat.push(t);
     if (t.children && t.children.length > 0) {
-      flat.push(...flattenTests(t.children));
+      flat.push(...flattenTests(t.children, currentNames));
     }
   }
   return flat;
+}
+function matchesFilter(t) {
+  if (!filterText)
+    return true;
+  const lowerFilter = filterText.toLowerCase();
+  if (filterTags && t.tags && t.tags.some((tag) => tag.toLowerCase().includes(lowerFilter))) {
+    return true;
+  }
+  if (filterFilenames && t.filePath && t.filePath.toLowerCase().includes(lowerFilter)) {
+    return true;
+  }
+  if (filterTestTitles && t.fullName && t.fullName.toLowerCase().includes(lowerFilter)) {
+    return true;
+  }
+  return false;
 }
 function render() {
   const app = document.getElementById("app");
   const flatTests = flattenTests(testsData);
   const tagsMap = /* @__PURE__ */ new Map();
   const untaggedTests = [];
-  for (const t of flatTests) {
+  const filteredTests = flatTests.filter(matchesFilter);
+  for (const t of filteredTests) {
     if (t.tags && t.tags.length > 0) {
       for (const tag of t.tags) {
         if (!tagsMap.has(tag))
