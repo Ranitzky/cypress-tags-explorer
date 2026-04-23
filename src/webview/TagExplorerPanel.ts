@@ -70,6 +70,8 @@ export class TagExplorerPanel {
                         <vscode-checkbox id="filter-opt-tags" checked>Tags</vscode-checkbox>
                         <vscode-checkbox id="filter-opt-filenames" checked>Filenames</vscode-checkbox>
                         <vscode-checkbox id="filter-opt-titles" checked>Titles (describe/context/it)</vscode-checkbox>
+                        <span style="border-left: 1px solid var(--vscode-panel-border); height: 15px; margin: 0 5px;"></span>
+                        <vscode-checkbox id="view-opt-tree" checked>Show as Tree</vscode-checkbox>
                     </div>
                 </div>
                 <div id="app">Loading...</div>

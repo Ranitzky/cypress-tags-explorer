@@ -1,4 +1,5 @@
 import { provideVSCodeDesignSystem, vsCodeBadge, vsCodeButton, vsCodeDivider, vsCodePanels, vsCodePanelTab, vsCodePanelView, vsCodeTextField, vsCodeCheckbox } from '@vscode/webview-ui-toolkit';
+import { buildTagTree, TagNode } from '../tree/TagHierarchyBuilder.js';
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
@@ -11,6 +12,7 @@ provideVSCodeDesignSystem().register(
   vsCodeCheckbox()
 );
 
+declare function acquireVsCodeApi(): any;
 const vscode = acquireVsCodeApi();
 
 let testsData: any[] = [];
@@ -20,6 +22,7 @@ let filterText = '';
 let filterTags = true;
 let filterFilenames = true;
 let filterTestTitles = true;
+let viewAsTree = true;
 
 window.addEventListener('load', () => {
     const filterInput = document.getElementById('filter-input') as any;
@@ -41,6 +44,14 @@ window.addEventListener('load', () => {
             });
         }
     });
+
+    const treeCb = document.getElementById('view-opt-tree') as any;
+    if (treeCb) {
+        treeCb.addEventListener('change', (e: any) => {
+            viewAsTree = e.target.checked;
+            render();
+        });
+    }
 });
 
 window.addEventListener('message', event => {
@@ -83,30 +94,78 @@ function matchesFilter(t: any): boolean {
     return false;
 }
 
+function renderTagNode(node: TagNode, depth: number = 0): string {
+    const testsHtml = node.tests.map((t: any) => {
+        let belongsToChild = false;
+        if (viewAsTree) {
+            for (const child of node.children) {
+                if (child.tests.some((ct: any) => ct.filePath === t.filePath && ct.line === t.line)) {
+                    belongsToChild = true;
+                    break;
+                }
+            }
+        }
+        if (viewAsTree && belongsToChild) return '';
+
+        return `
+            <div style="margin-left: 15px; padding: 5px; border-left: 2px solid var(--vscode-focusBorder); cursor: pointer;" class="test-item" data-filepath="${t.filePath}" data-line="${t.line}">
+                <span style="color: var(--vscode-symbolIcon-methodForeground);">${t.type}</span>: ${t.name}
+                <div style="font-size: 11px; opacity: 0.7;">${t.filePath.split('/').pop()}:${t.line + 1}</div>
+            </div>
+        `;
+    }).join('');
+
+    const childrenHtml = node.children.map(child => renderTagNode(child, depth + 1)).join('');
+
+    let tagHeader = `
+        <div style="display: flex; align-items: center; justify-content: space-between; background: var(--vscode-editor-inactiveSelectionBackground); padding: 5px 10px; border-radius: 3px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <strong style="font-size: 14px;"><span class="tag-arrow" style="display: inline-block; transition: transform 0.2s;">▶</span> ${node.tag} <vscode-badge>${node.tests.length}</vscode-badge></strong>
+            </div>
+            <vscode-button appearance="icon" aria-label="Rename" title="Rename" class="rename-btn" data-tag="${node.tag}">
+                <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.23 1zM11.5 2.73l-8.26 8.27L2 14l3-1.24 8.27-8.26-1.77-1.77zM4.15 12.02l-1.32.55.55-1.32L10.74 3.9 12.1 5.26 4.15 12.02z"/></svg>
+            </vscode-button>
+        </div>
+    `;
+
+    if (editingTag === node.tag) {
+        tagHeader = `
+            <div style="display: flex; align-items: center; gap: 10px; background: var(--vscode-editor-inactiveSelectionBackground); padding: 5px 10px; border-radius: 3px;" onclick="event.stopPropagation();">
+                <vscode-text-field id="rename-input-${node.tag}" value="${node.tag}" onclick="event.stopPropagation();"></vscode-text-field>
+                <vscode-button appearance="primary" class="save-btn" data-tag="${node.tag}">Save</vscode-button>
+                <vscode-button appearance="secondary" class="cancel-btn">Cancel</vscode-button>
+            </div>
+        `;
+    }
+
+    return `
+        <details open style="margin-bottom: 10px; margin-left: ${depth * 15}px;">
+            <summary style="cursor: pointer; list-style: none; user-select: none;">
+                ${tagHeader}
+            </summary>
+            <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 10px; margin-bottom: 15px; margin-left: 5px;">
+                ${testsHtml}
+                ${childrenHtml}
+            </div>
+        </details>
+    `;
+}
+
 function render() {
     const app = document.getElementById('app')!;
     const flatTests = flattenTests(testsData);
 
-    const tagsMap = new Map<string, any[]>();
-    const untaggedTests: any[] = [];
-
     const filteredTests = flatTests.filter(matchesFilter);
+    const tagRoots = buildTagTree(filteredTests, viewAsTree);
 
-    // Grouping
-    for (const t of filteredTests) {
-        // Only count 'it' blocks for runnable tests, or all?
-        // User said: "tests ohne tags bekommen eine eigene rubrik. tags werden vererbt, describe, context, it sind die 3 ebenen."
-        // We will show 'it' blocks as the main tests, but also context/describe if they have tags and no children?
-        // Let's just group all blocks that have tags.
-        if (t.tags && t.tags.length > 0) {
-            for (const tag of t.tags) {
-                if (!tagsMap.has(tag)) tagsMap.set(tag, []);
-                tagsMap.get(tag)!.push(t);
-            }
+    let untaggedTests: any[] = [];
+    let htmlTags = '';
+
+    for (const node of tagRoots) {
+        if (node.tag === '[Untagged]') {
+            untaggedTests = node.tests;
         } else {
-            if (t.type === 'it') {
-                untaggedTests.push(t);
-            }
+            htmlTags += renderTagNode(node);
         }
     }
 
@@ -117,52 +176,7 @@ function render() {
 
             <vscode-panel-view id="view-tags">
                 <div style="width: 100%; display: flex; flex-direction: column; gap: 15px;">
-    `;
-
-    const sortedTags = Array.from(tagsMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-
-    for (const [tag, tests] of sortedTags) {
-        const testsHtml = tests.map((t: any) => `
-            <div style="margin-left: 15px; padding: 5px; border-left: 2px solid var(--vscode-focusBorder); cursor: pointer;" class="test-item" data-filepath="${t.filePath}" data-line="${t.line}">
-                <span style="color: var(--vscode-symbolIcon-methodForeground);">${t.type}</span>: ${t.name}
-                <div style="font-size: 11px; opacity: 0.7;">${t.filePath.split('/').pop()}:${t.line + 1}</div>
-            </div>
-        `).join('');
-
-        let tagHeader = `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: var(--vscode-editor-inactiveSelectionBackground); padding: 5px 10px; border-radius: 3px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <strong style="font-size: 14px;"><span class="tag-arrow" style="display: inline-block; transition: transform 0.2s;">▶</span> ${tag} <vscode-badge>${tests.length}</vscode-badge></strong>
-                </div>
-                <vscode-button appearance="icon" aria-label="Rename" title="Rename" class="rename-btn" data-tag="${tag}">
-                    <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.23 1zM11.5 2.73l-8.26 8.27L2 14l3-1.24 8.27-8.26-1.77-1.77zM4.15 12.02l-1.32.55.55-1.32L10.74 3.9 12.1 5.26 4.15 12.02z"/></svg>
-                </vscode-button>
-            </div>
-        `;
-
-        if (editingTag === tag) {
-            tagHeader = `
-                <div style="display: flex; align-items: center; gap: 10px; background: var(--vscode-editor-inactiveSelectionBackground); padding: 5px 10px; border-radius: 3px;" onclick="event.stopPropagation();">
-                    <vscode-text-field id="rename-input-${tag}" value="${tag}" onclick="event.stopPropagation();"></vscode-text-field>
-                    <vscode-button appearance="primary" class="save-btn" data-tag="${tag}">Save</vscode-button>
-                    <vscode-button appearance="secondary" class="cancel-btn">Cancel</vscode-button>
-                </div>
-            `;
-        }
-
-        html += `
-            <details open style="margin-bottom: 10px;">
-                <summary style="cursor: pointer; list-style: none; user-select: none;">
-                    ${tagHeader}
-                </summary>
-                <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 10px; margin-bottom: 15px; margin-left: 5px;">
-                    ${testsHtml}
-                </div>
-            </details>
-        `;
-    }
-
-    html += `
+                    ${htmlTags}
                 </div>
             </vscode-panel-view>
             <vscode-panel-view id="view-untagged">
@@ -227,7 +241,8 @@ function render() {
             const input = document.getElementById(`rename-input-${oldTag}`) as any;
             if (oldTag && input && input.value) {
                 const newTag = input.value;
-                const files = tagsMap.get(oldTag)?.map(t => t.filePath) || [];
+                const flatTests = flattenTests(testsData);
+                const files = flatTests.filter(ft => ft.tags && ft.tags.includes(oldTag)).map(ft => ft.filePath);
                 const uniqueFiles = Array.from(new Set(files));
                 vscode.postMessage({
                     command: 'renameTag',

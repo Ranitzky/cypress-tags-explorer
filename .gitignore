@@ -1,4 +1,5 @@
 node_modules/
 dist/
+out/
 vsc-extension-quickstart.md
 *.vsix

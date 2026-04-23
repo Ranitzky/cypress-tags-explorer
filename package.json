@@ -2,7 +2,7 @@
   "name": "cypress-tags-explorer",
   "displayName": "Cypress Tags Explorer",
   "description": "Manage Cypress Tags",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "publisher": "ricowilcke",
   "license": "MIT",
   "engines": {
@@ -12,17 +12,75 @@
     "url": "https://github.com/Ranitzky/cypress-tags-explorer"
   },
   "categories": [
-    "Other"
+    "Testing"
   ],
+  "icon": "images/icon.png",
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "tags-explorer",
+          "title": "Tags Explorer",
+          "icon": "$(tag)"
+        }
+      ]
+    },
+    "views": {
+      "tags-explorer": [
+        {
+          "id": "tags-explorer-tags",
+          "name": "Tags"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "tags-explorer.open",
-        "title": "Cypress Tags Explorer: Open"
+        "title": "Cypress Tags Explorer: Open Webview",
+        "icon": "$(layout-sidebar-right)"
+      },
+      {
+        "command": "tags-explorer.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "tags-explorer.toggleViewAsTree",
+        "title": "View as Tree",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "tags-explorer.toggleViewAsList",
+        "title": "View as List",
+        "icon": "$(list-flat)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "tags-explorer.refresh",
+          "when": "view == tags-explorer-tags",
+          "group": "navigation@1"
+        },
+        {
+          "command": "tags-explorer.toggleViewAsTree",
+          "when": "view == tags-explorer-tags && !tagsExplorer.viewAsTree",
+          "group": "navigation@2"
+        },
+        {
+          "command": "tags-explorer.toggleViewAsList",
+          "when": "view == tags-explorer-tags && tagsExplorer.viewAsTree",
+          "group": "navigation@2"
+        },
+        {
+          "command": "tags-explorer.open",
+          "when": "view == tags-explorer-tags",
+          "group": "navigation@3"
+        }
+      ]
+    },
     "configuration": {
       "title": "Cypress Tags Explorer",
       "properties": {

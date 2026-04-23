@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.1.0 - April, 23rd 2026
+
+- **Native VS Code Sidebar View**: Added a new Activity Bar icon (`Tags Explorer`) providing a native, hierarchical tree view of your Cypress tags.
+- **Hierarchical Tags**: Automatically infers tag hierarchies based on test subset inclusion.
+- **Tree vs Flat View Toggle**: Both the Webview and the Sidebar View now feature a toggle to switch seamlessly between a hierarchical "Tree View" and a simple flat list.
+- **Advanced Filtering**: Added a powerful filter bar to the Webview to instantly search across Tags, Filenames, and Test titles.
+- **Untagged Test Grouping**: Untagged tests (`it` blocks without any tags) are distinctly grouped under a special `[Untagged]` node in the Sidebar and an "UNTAGGED TESTS" tab in the Webview.
+- **Quick Access**: Added a handy button in the Sidebar's title menu to quickly launch the full-page Webview.
+
+
 ## 0.0.1 - April, 22nd 2026
 
 - Initial release of Cypress Tags Explorer

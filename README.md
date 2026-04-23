@@ -6,19 +6,21 @@ A powerful VS Code extension to easily manage, view, and organize Cypress tags r
 
 ## Features
 
-- **Full-page Webview**: Experience a clean, native-looking interface built with the VS Code Webview UI Toolkit.
+- **Native Sidebar View & Webview**: Manage tags using a lightweight native VS Code Sidebar tree, or pop open the rich, full-page Webview interface.
+- **Hierarchical Tags**: The explorer automatically infers tag relationships (if all tests for `@smoke` also have `@e2e`, `@smoke` is seamlessly nested under `@e2e`).
+- **Tree vs Flat List**: Effortlessly toggle between nested tag hierarchies and flat alphabetical lists in both the Sidebar and the Webview.
+- **Advanced Filtering**: Use the Webview's powerful filter bar to find tests fast—search by Tags, Filenames, or strings in your test titles (`describe` > `context` > `it`).
 - **AST Parsing**: Automatically parses your Cypress files (`describe`, `context`, `it` blocks) to extract tags without executing any code.
 - **Tag Inheritance**: Accurately reflects Cypress tag inheritance. Tags applied to a `describe` block automatically cascade down to its `it` blocks.
 - **Enum Resolution**: Supports both plain string tags (e.g., `'@smoke'`) and Enums (e.g., `Priority.HIGH`). It intelligently traces imports across your workspace to resolve the underlying string values of enums.
-- **Organized Overview**: Displays all discovered tags sorted alphabetically, along with a count of tests associated with each tag. Tests without tags are conveniently grouped in an "Untagged" section.
-- **Click-to-Open**: Click on any test in the list to instantly jump to the corresponding line in your editor, making it effortless to add or reassign tags.
+- **Organized Overview**: Displays all discovered tags sorted alphabetically or hierarchically, along with test counts. Tests without tags are clearly grouped under `[Untagged]`.
+- **Click-to-Open**: Click on any test in the tree or list to instantly jump to the corresponding line in your editor, making it effortless to add or reassign tags.
 - **Inline Renaming**: Rename tags across your entire workspace directly from the UI. The extension safely updates your code using native VS Code `WorkspaceEdit` features, preserving your formatting.
 
 ## Usage
 
-1. Open the Command Palette in VS Code (`Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows/Linux).
-2. Search for and execute the command: **"Cypress Tags Explorer: Open"**.
-3. The Tags Explorer webview will open, displaying all tags and tests in your configured Cypress directory.
+1. **Sidebar View**: Click the **Tag Icon** in the VS Code Activity Bar (left sidebar) to view your parsed tags natively.
+2. **Webview**: Click the "Open Webview" icon in the Sidebar's title menu, or search for and execute the **"Cypress Tags Explorer: Open Webview"** command from the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`).
 
 ## Setup & Configuration
 
@@ -37,4 +39,4 @@ You can customize this behavior in your VS Code `settings.json`:
 1. Clone this repository and open the folder in VS Code.
 2. Run `npm install` to install dependencies.
 3. Press `F5` to open a new window with the extension loaded (Extension Development Host).
-4. In the new window, open the Command Palette (`Cmd+Shift+P` on Mac / `Ctrl+Shift+P` on Windows) and run **"Cypress Tags Explorer: Open"**.
+4. Click the Tag icon in the left Activity Bar to open the Sidebar view, or open the Command Palette and run **"Cypress Tags Explorer: Open Webview"**.
