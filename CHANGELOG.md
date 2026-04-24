@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.2.0 - April, 24th 2026
+
+- **Improved Parsing Robustness**: The AST parser now handles Cypress and BDD test aliases seamlessly, including `scenario` and `feature` blocks.
+- **Support for Modifiers**: Test blocks using modifiers like `.only` and `.skip` (e.g. `it.only`, `describe.skip`) are now correctly recognized and parsed.
+- **Robust Enum Resolution**: Enum-based tags now resolve flawlessly even when exported from directory index files (`index.ts` / `index.js`) or imported via grouped named imports.
+- **Multi-line Template Support**: Fixed an issue where the extension failed to extract test titles if they were defined using multi-line template literals.
+
+
 ## 0.1.0 - April, 23rd 2026
 
 - **Native VS Code Sidebar View**: Added a new Activity Bar icon (`Tags Explorer`) providing a native, hierarchical tree view of your Cypress tags.

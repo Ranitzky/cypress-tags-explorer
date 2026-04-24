@@ -57,16 +57,27 @@ export class TagParser {
             let currentTests: TestInfo[] = [];
             
             if (ts.isCallExpression(node)) {
-                const expr = node.expression;
+                let expr = node.expression;
+                let funcName = '';
+
                 if (ts.isIdentifier(expr)) {
-                    const funcName = expr.text;
-                    if (['describe', 'context', 'it'].includes(funcName)) {
-                        const args = node.arguments;
+                    funcName = expr.text;
+                } else if (ts.isPropertyAccessExpression(expr) && ts.isIdentifier(expr.expression)) {
+                    // e.g. describe.only, it.skip
+                    funcName = expr.expression.text;
+                }
+
+                const validFuncs = ['describe', 'context', 'it', 'scenario', 'feature', 'Scenario', 'Feature'];
+
+                if (validFuncs.includes(funcName)) {
+                    const args = node.arguments;
                         if (args.length >= 2) {
                             const nameArg = args[0];
                             let name = 'Unknown';
                             if (ts.isStringLiteral(nameArg) || ts.isNoSubstitutionTemplateLiteral(nameArg)) {
                                 name = nameArg.text;
+                            } else if (ts.isTemplateExpression(nameArg)) {
+                                name = nameArg.head.text + '...';
                             }
 
                             let tags: string[] = [];
@@ -116,7 +127,6 @@ export class TagParser {
                         }
                     }
                 }
-            }
 
             ts.forEachChild(node, (child) => {
                 currentTests.push(...visit(child, parentTags));
@@ -170,13 +180,13 @@ export class TagParser {
         let isImported = false;
 
         for (const [importPath, namedImports] of imports.entries()) {
-            if (namedImports.includes(enumName)) {
+            if (namedImports.split(',').includes(enumName)) {
                 // Resolve path
                 const dir = path.dirname(currentFilePath);
-                const exts = ['.ts', '.js'];
+                const exts = ['.ts', '.js', '/index.ts', '/index.js'];
                 for (const ext of exts) {
                     const fullPath = path.join(dir, importPath + ext);
-                    if (fs.existsSync(fullPath)) {
+                    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
                         targetFilePath = fullPath;
                         isImported = true;
                         break;

@@ -2,7 +2,7 @@
   "name": "cypress-tags-explorer",
   "displayName": "Cypress Tags Explorer",
   "description": "Manage Cypress Tags",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "ricowilcke",
   "license": "MIT",
   "engines": {
