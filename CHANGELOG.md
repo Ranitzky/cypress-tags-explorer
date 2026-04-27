@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.3.0 - April, 27th 2026
+
+- **TSConfig Path Resolution**: The extension now intelligently parses your workspace's `tsconfig.json` and uses the TypeScript compiler API to correctly resolve custom import aliases (e.g., `@support/tags`). This ensures enum-based tags are reliably discovered even when using complex alias paths.
+- **Improved Caching Mechanism**: Introduced `tsconfig` caching per directory to ensure instantaneous parsing without unnecessary disk I/O overhead.
+
 ## 0.2.0 - April, 24th 2026
 
 - **Improved Parsing Robustness**: The AST parser now handles Cypress and BDD test aliases seamlessly, including `scenario` and `feature` blocks.
