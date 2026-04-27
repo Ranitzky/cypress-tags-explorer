@@ -15,6 +15,7 @@ export interface TestInfo {
 
 export class TagParser {
     private parsedEnumsCache = new Map<string, Map<string, string>>();
+    private tsConfigCache = new Map<string, ts.ParsedCommandLine | null>();
 
     public async parseWorkspace(): Promise<TestInfo[]> {
         const config = vscode.workspace.getConfiguration('tagsExplorer');
@@ -183,6 +184,38 @@ export class TagParser {
             if (namedImports.split(',').includes(enumName)) {
                 // Resolve path
                 const dir = path.dirname(currentFilePath);
+                
+                // 1. Try resolving using TS Config (handles paths like @support/*)
+                const tsConfigPath = ts.findConfigFile(dir, ts.sys.fileExists, 'tsconfig.json');
+                if (tsConfigPath) {
+                    if (!this.tsConfigCache.has(tsConfigPath)) {
+                        const configFile = ts.readConfigFile(tsConfigPath, ts.sys.readFile);
+                        if (configFile.config) {
+                            const parsedConfig = ts.parseJsonConfigFileContent(configFile.config, ts.sys, path.dirname(tsConfigPath));
+                            this.tsConfigCache.set(tsConfigPath, parsedConfig);
+                        } else {
+                            this.tsConfigCache.set(tsConfigPath, null);
+                        }
+                    }
+                    
+                    const parsedConfig = this.tsConfigCache.get(tsConfigPath);
+                    if (parsedConfig) {
+                        const resolvedModule = ts.resolveModuleName(
+                            importPath,
+                            currentFilePath,
+                            parsedConfig.options,
+                            ts.sys
+                        );
+                        
+                        if (resolvedModule.resolvedModule) {
+                            targetFilePath = resolvedModule.resolvedModule.resolvedFileName;
+                            isImported = true;
+                            break;
+                        }
+                    }
+                }
+
+                // 2. Fallback to basic file resolution
                 const exts = ['.ts', '.js', '/index.ts', '/index.js'];
                 for (const ext of exts) {
                     const fullPath = path.join(dir, importPath + ext);
