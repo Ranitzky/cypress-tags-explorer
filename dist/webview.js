@@ -7160,12 +7160,136 @@ function flattenTests(tests, parentNames = []) {
   }
   return flat;
 }
+function tokenizeTagExpr(expr) {
+  const tokens = [];
+  const re = /\(|\)|[^\s()+]+|\+/g;
+  let m;
+  while ((m = re.exec(expr)) !== null) {
+    const v = m[0];
+    if (v === "(") {
+      tokens.push({ type: "LP", value: v });
+      continue;
+    }
+    if (v === ")") {
+      tokens.push({ type: "RP", value: v });
+      continue;
+    }
+    if (v === "+") {
+      tokens.push({ type: "AND", value: "AND" });
+      continue;
+    }
+    if (/^AND$/i.test(v)) {
+      tokens.push({ type: "AND", value: "AND" });
+      continue;
+    }
+    if (/^OR$/i.test(v)) {
+      tokens.push({ type: "OR", value: "OR" });
+      continue;
+    }
+    if (/^NOT$/i.test(v)) {
+      tokens.push({ type: "NOT", value: "NOT" });
+      continue;
+    }
+    tokens.push({ type: "TAG", value: v });
+  }
+  tokens.push({ type: "EOF", value: "" });
+  return tokens;
+}
+var TagExprParser = class {
+  tokens;
+  pos = 0;
+  constructor(tokens) {
+    this.tokens = tokens;
+  }
+  peek() {
+    return this.tokens[this.pos];
+  }
+  consume() {
+    return this.tokens[this.pos++];
+  }
+  parse() {
+    return this.parseOr();
+  }
+  // or_expr: and_expr ( ('OR' | implicit) and_expr )*
+  parseOr() {
+    let left = this.parseAnd();
+    while (true) {
+      const t = this.peek();
+      if (t.type === "OR") {
+        this.consume();
+        const right = this.parseAnd();
+        const l = left, r = right;
+        left = (tags) => l(tags) || r(tags);
+      } else if (t.type === "TAG" || t.type === "NOT" || t.type === "LP") {
+        const right = this.parseAnd();
+        const l = left, r = right;
+        left = (tags) => l(tags) || r(tags);
+      } else {
+        break;
+      }
+    }
+    return left;
+  }
+  // and_expr: not_expr ( 'AND' not_expr )*
+  parseAnd() {
+    let left = this.parseNot();
+    while (this.peek().type === "AND") {
+      this.consume();
+      const right = this.parseNot();
+      const l = left, r = right;
+      left = (tags) => l(tags) && r(tags);
+    }
+    return left;
+  }
+  // not_expr: 'NOT' not_expr | atom
+  parseNot() {
+    if (this.peek().type === "NOT") {
+      this.consume();
+      const inner = this.parseNot();
+      return (tags) => !inner(tags);
+    }
+    return this.parseAtom();
+  }
+  // atom: '(' expr ')' | TAG
+  parseAtom() {
+    const t = this.peek();
+    if (t.type === "LP") {
+      this.consume();
+      const inner = this.parseOr();
+      if (this.peek().type === "RP")
+        this.consume();
+      return inner;
+    }
+    if (t.type === "TAG") {
+      this.consume();
+      let name = t.value;
+      let negate = false;
+      if (name.startsWith("-")) {
+        negate = true;
+        name = name.slice(1);
+      }
+      const lower = name.toLowerCase();
+      const match = (tags) => tags.some((tag) => tag.toLowerCase() === lower || tag.toLowerCase().includes(lower));
+      return negate ? (tags) => !match(tags) : match;
+    }
+    return () => true;
+  }
+};
+function matchesTagExpression(testTags, expr) {
+  if (!expr.trim())
+    return true;
+  const tokens = tokenizeTagExpr(expr);
+  const pred = new TagExprParser(tokens).parse();
+  return pred(testTags);
+}
 function matchesFilter(t) {
   if (!filterText)
     return true;
   const lowerFilter = filterText.toLowerCase();
-  if (filterTags && t.tags && t.tags.some((tag) => tag.toLowerCase().includes(lowerFilter))) {
-    return true;
+  const testTags = t.tags ?? [];
+  if (filterTags && testTags.length > 0) {
+    if (matchesTagExpression(testTags, filterText))
+      return true;
   }
   if (filterFilenames && t.filePath && t.filePath.toLowerCase().includes(lowerFilter)) {
     return true;
