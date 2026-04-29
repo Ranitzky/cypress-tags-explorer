@@ -1,4 +1,4 @@
-import { provideVSCodeDesignSystem, vsCodeBadge, vsCodeButton, vsCodeDivider, vsCodePanels, vsCodePanelTab, vsCodePanelView, vsCodeTextField, vsCodeCheckbox } from '@vscode/webview-ui-toolkit';
+import { provideVSCodeDesignSystem, vsCodeBadge, vsCodeButton, vsCodeCheckbox, vsCodeDivider, vsCodePanels, vsCodePanelTab, vsCodePanelView, vsCodeTextField } from '@vscode/webview-ui-toolkit';
 import { buildTagTree, TagNode } from '../tree/TagHierarchyBuilder.js';
 
 provideVSCodeDesignSystem().register(
@@ -206,7 +206,7 @@ function matchesFilter(t: any): boolean {
     const lowerFilter = filterText.toLowerCase();
     const testTags: string[] = t.tags ?? [];
 
-    if (filterTags && testTags.length > 0) {
+    if (filterTags) {
         if (matchesTagExpression(testTags, filterText)) return true;
     }
     if (filterFilenames && t.filePath && t.filePath.toLowerCase().includes(lowerFilter)) {
