@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.4.0 - April, 29th 2026
+
+- **Boolean Tag Expressions**: The filter bar now supports a full boolean expression language for tag filtering, inspired by `@cypress/grep`. Combine tags using `AND`, `OR`, `NOT` keywords and group sub-expressions with parentheses `()`.
+- **Recursive-Descent Parser**: Under the hood, tag filter input is now tokenised and evaluated by a recursive-descent parser, enabling correct operator precedence (`NOT` > `AND` > `OR`) and arbitrary nesting depth.
+- **Backward-Compatible Syntax**: All legacy shorthand operators continue to work alongside the new keywords — `+` for AND, space for OR, and a `-` prefix for NOT (e.g. `@smoke+@critical`, `@smoke @critical`, `-@slow`).
+
 ## 0.3.0 - April, 27th 2026
 
 - **TSConfig Path Resolution**: The extension now intelligently parses your workspace's `tsconfig.json` and uses the TypeScript compiler API to correctly resolve custom import aliases (e.g., `@support/tags`). This ensures enum-based tags are reliably discovered even when using complex alias paths.

@@ -9,7 +9,7 @@ A powerful VS Code extension to easily manage, view, and organize Cypress tags r
 - **Native Sidebar View & Webview**: Manage tags using a lightweight native VS Code Sidebar tree, or pop open the rich, full-page Webview interface.
 - **Hierarchical Tags**: The explorer automatically infers tag relationships (if all tests for `@smoke` also have `@e2e`, `@smoke` is seamlessly nested under `@e2e`).
 - **Tree vs Flat List**: Effortlessly toggle between nested tag hierarchies and flat alphabetical lists in both the Sidebar and the Webview.
-- **Advanced Filtering**: Use the Webview's powerful filter bar to find tests fast—search by Tags, Filenames, or strings in your test titles (`describe` > `context` > `it`).
+- **Advanced Filtering**: Use the Webview's powerful filter bar to find tests fast — search by Tags, Filenames, or strings in your test titles (`describe` > `context` > `it`). Tag filtering supports a full boolean expression language with `AND`, `OR`, `NOT` keywords and parentheses for grouping.
 - **AST Parsing**: Automatically parses your Cypress files (`describe`, `context`, `it` blocks) to extract tags without executing any code.
 - **Tag Inheritance**: Accurately reflects Cypress tag inheritance. Tags applied to a `describe` block automatically cascade down to its `it` blocks.
 - **Enum Resolution**: Supports both plain string tags (e.g., `'@smoke'`) and Enums (e.g., `Priority.HIGH`). It intelligently traces imports across your workspace to resolve the underlying string values of enums.
@@ -21,6 +21,60 @@ A powerful VS Code extension to easily manage, view, and organize Cypress tags r
 
 1. **Sidebar View**: Click the **Tag Icon** in the VS Code Activity Bar (left sidebar) to view your parsed tags natively.
 2. **Webview**: Click the "Open Webview" icon in the Sidebar's title menu, or search for and execute the **"Cypress Tags Explorer: Open Webview"** command from the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`).
+
+## Tag Filter Syntax
+
+The filter bar in the Webview supports a full boolean expression language when searching by **Tags**. Filename and test-title filters always use a simple substring match.
+
+### Operators
+
+| Operator | Keyword | Legacy shorthand | Meaning |
+|---|---|---|---|
+| AND | `AND` | `+` between tags | Both tags must be present |
+| OR | `OR` | space between tags | Either tag must be present |
+| NOT | `NOT` | `-` prefix on a tag | Tag must **not** be present |
+| Group | `(` `)` | — | Evaluate sub-expression first |
+
+> **Operator precedence** (high → low): `NOT` → `AND` → `OR`
+
+### Examples
+
+```
+# Single tag
+@smoke
+
+# OR  – either tag (keyword)
+@smoke OR @critical
+
+# OR  – either tag (legacy: space-separated)
+@smoke @critical
+
+# AND – both tags required (keyword)
+@smoke AND @critical
+
+# AND – both tags required (legacy: + separated)
+@smoke+@critical
+
+# NOT – exclude a tag (keyword)
+NOT @slow
+
+# NOT – exclude a tag (legacy: - prefix)
+-@slow
+
+# AND + NOT – tagged smoke but not slow (keyword)
+@smoke AND NOT @slow
+
+# AND + NOT – tagged smoke but not slow (legacy)
+@smoke+-@slow
+
+# Complex grouped expression
+(@smoke OR @critical) AND NOT @slow
+
+# Multiple OR-groups, one of which is an AND
+@regression (@smoke AND @critical)
+```
+
+> Matching is **case-insensitive** and uses **substring** comparison, so `smoke` matches `@smoke`.
 
 ## Setup & Configuration
 
