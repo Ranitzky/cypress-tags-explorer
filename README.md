@@ -9,7 +9,7 @@ A powerful VS Code extension to easily manage, view, and organize Cypress tags r
 - **Native Sidebar View & Webview**: Manage tags using a lightweight native VS Code Sidebar tree, or pop open the rich, full-page Webview interface.
 - **Hierarchical Tags**: The explorer automatically infers tag relationships (if all tests for `@smoke` also have `@e2e`, `@smoke` is seamlessly nested under `@e2e`).
 - **Tree vs Flat List**: Effortlessly toggle between nested tag hierarchies and flat alphabetical lists in both the Sidebar and the Webview.
-- **Advanced Filtering**: Use the Webview's powerful filter bar to find tests fast — search by Tags, Filenames, or strings in your test titles (`describe` > `context` > `it`). Tag filtering supports a full boolean expression language with `AND`, `OR`, `NOT` keywords and parentheses for grouping.
+- **Advanced Filtering**: Quickly find specific tests using the filter bar in the Webview or the filter icon in the Sidebar title menu. Search by Tags, Filenames, or test titles (`describe` > `context` > `it`). Tag filtering supports a full boolean expression language with `AND`, `OR`, `NOT` keywords and parentheses for grouping.
 - **AST Parsing**: Automatically parses your Cypress files (`describe`, `context`, `it` blocks) to extract tags without executing any code.
 - **Tag Inheritance**: Accurately reflects Cypress tag inheritance. Tags applied to a `describe` block automatically cascade down to its `it` blocks.
 - **Enum Resolution**: Supports both plain string tags (e.g., `'@smoke'`) and Enums (e.g., `Priority.HIGH`). It intelligently traces imports across your workspace to resolve the underlying string values of enums.
@@ -24,7 +24,7 @@ A powerful VS Code extension to easily manage, view, and organize Cypress tags r
 
 ## Tag Filter Syntax
 
-The filter bar in the Webview supports a full boolean expression language when searching by **Tags**. Filename and test-title filters always use a simple substring match.
+The powerful boolean expression language is supported when searching by **Tags** in both the Webview filter bar and the Sidebar native filter input. Filename and test-title filters always use a simple substring match.
 
 ### Operators
 
