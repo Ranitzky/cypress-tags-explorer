@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.5.0 - May 05, 2026
+
+- **Sidebar Tag Filtering**: The powerful boolean filter expressions (`@smoke AND @critical`, etc.) introduced in 0.4.0 are now available directly in the native VS Code Sidebar view.
+- **Filter Controls**: Use the new filter icon in the Sidebar title bar to quickly apply, edit, or clear your tag filters without opening the full Webview.
+- **Active Filter Visibility**: Active filter strings are now prominently displayed directly within the TreeView via a top-level banner message, ensuring you always know exactly what you are looking at.
+
 ## 0.4.0 - April 29, 2026
 
 - **Boolean Tag Expressions**: The filter bar now supports a full boolean expression language for tag filtering, inspired by `@cypress/grep`. Combine tags using `AND`, `OR`, `NOT` keywords and group sub-expressions with parentheses `()`.

@@ -13,7 +13,9 @@ export function activate(context: vscode.ExtensionContext) {
   // Initialize Tree Providers
   const tagsProvider = new TagsTreeProvider();
 
-  vscode.window.registerTreeDataProvider('tags-explorer-tags', tagsProvider);
+  const tagsTreeView = vscode.window.createTreeView('tags-explorer-tags', {
+    treeDataProvider: tagsProvider
+  });
 
   // Set default context for the toggle
   vscode.commands.executeCommand('setContext', 'tagsExplorer.viewAsTree', true);
@@ -63,6 +65,32 @@ export function activate(context: vscode.ExtensionContext) {
       const pos = new vscode.Position(line, 0);
       editor.selection = new vscode.Selection(pos, pos);
       editor.revealRange(new vscode.Range(pos, pos));
+    }),
+    vscode.commands.registerCommand('tags-explorer.filterTags', async () => {
+      const currentFilter = tagsProvider.filterText;
+      const filter = await vscode.window.showInputBox({
+        prompt: 'Filter tags (e.g. @smoke AND @critical)',
+        value: currentFilter
+      });
+      if (filter !== undefined) {
+        tagsProvider.setFilter(filter);
+        tagsTreeView.message = filter ? `Active Filter: ${filter}` : '';
+      }
+    }),
+    vscode.commands.registerCommand('tags-explorer.editFilter', async () => {
+      const currentFilter = tagsProvider.filterText;
+      const filter = await vscode.window.showInputBox({
+        prompt: 'Edit filter (e.g. @smoke AND @critical)',
+        value: currentFilter
+      });
+      if (filter !== undefined) {
+        tagsProvider.setFilter(filter);
+        tagsTreeView.message = filter ? `Active Filter: ${filter}` : '';
+      }
+    }),
+    vscode.commands.registerCommand('tags-explorer.clearFilter', () => {
+      tagsProvider.setFilter('');
+      tagsTreeView.message = '';
     })
   );
 }
