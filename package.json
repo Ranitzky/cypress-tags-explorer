@@ -2,7 +2,7 @@
   "name": "cypress-tags-explorer",
   "displayName": "Cypress Tags Explorer",
   "description": "Manage Cypress Tags",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "ricowilcke",
   "license": "MIT",
   "engines": {
@@ -55,6 +55,21 @@
         "command": "tags-explorer.toggleViewAsList",
         "title": "View as List",
         "icon": "$(list-flat)"
+      },
+      {
+        "command": "tags-explorer.filterTags",
+        "title": "Filter Tags",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "tags-explorer.editFilter",
+        "title": "Edit Filter",
+        "icon": "$(filter-filled)"
+      },
+      {
+        "command": "tags-explorer.clearFilter",
+        "title": "Clear Filter",
+        "icon": "$(clear-all)"
       }
     ],
     "menus": {
@@ -78,6 +93,21 @@
           "command": "tags-explorer.open",
           "when": "view == tags-explorer-tags",
           "group": "navigation@3"
+        },
+        {
+          "command": "tags-explorer.filterTags",
+          "when": "view == tags-explorer-tags && !tagsExplorer.isFiltered",
+          "group": "navigation@4"
+        },
+        {
+          "command": "tags-explorer.editFilter",
+          "when": "view == tags-explorer-tags && tagsExplorer.isFiltered",
+          "group": "navigation@4"
+        },
+        {
+          "command": "tags-explorer.clearFilter",
+          "when": "view == tags-explorer-tags && tagsExplorer.isFiltered",
+          "group": "navigation@5"
         }
       ]
     },

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { BaseTreeItem, TagTreeItem, TestCaseTreeItem } from './TreeItem.js';
 import { TagNode, buildTagTree } from './TagHierarchyBuilder.js';
+import { compileTagExpression, TagPred } from '../utils/filterParser.js';
 
 export class TagsTreeProvider implements vscode.TreeDataProvider<BaseTreeItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<BaseTreeItem | undefined | void> = new vscode.EventEmitter<BaseTreeItem | undefined | void>();
@@ -8,9 +9,18 @@ export class TagsTreeProvider implements vscode.TreeDataProvider<BaseTreeItem> {
 
     private flatTests: any[] = [];
     public viewAsTree: boolean = true;
+    public filterText: string = '';
+    private filterPredicate: TagPred = () => true;
 
     refresh(flatTests: any[]): void {
         this.flatTests = flatTests;
+        this._onDidChangeTreeData.fire();
+    }
+
+    setFilter(text: string): void {
+        this.filterText = text.trim();
+        this.filterPredicate = compileTagExpression(this.filterText);
+        vscode.commands.executeCommand('setContext', 'tagsExplorer.isFiltered', !!this.filterText);
         this._onDidChangeTreeData.fire();
     }
 
@@ -26,7 +36,11 @@ export class TagsTreeProvider implements vscode.TreeDataProvider<BaseTreeItem> {
 
     getChildren(element?: BaseTreeItem): Thenable<BaseTreeItem[]> {
         if (!element) {
-            const rootNodes = buildTagTree(this.flatTests, this.viewAsTree);
+            let tests = this.flatTests;
+            if (this.filterText) {
+                tests = tests.filter(t => this.filterPredicate(t.tags ?? []));
+            }
+            const rootNodes = buildTagTree(tests, this.viewAsTree);
             return Promise.resolve(rootNodes.map(node => new TagNodeWrapper(node)));
         } else if (element instanceof TagNodeWrapper) {
             const items: BaseTreeItem[] = [];
