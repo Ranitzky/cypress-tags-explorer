@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.5.0 - May 05, 2026
+## 0.5.0 - May 20, 2026
 
 - **Sidebar Tag Filtering**: The powerful boolean filter expressions (`@smoke AND @critical`, etc.) introduced in 0.4.0 are now available directly in the native VS Code Sidebar view.
 - **Filter Controls**: Use the new filter icon in the Sidebar title bar to quickly apply, edit, or clear your tag filters without opening the full Webview.
