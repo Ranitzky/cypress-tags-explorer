@@ -14,7 +14,7 @@
 
 type TagTokType = 'TAG' | 'AND' | 'OR' | 'NOT' | 'LP' | 'RP' | 'EOF';
 interface TagTok { type: TagTokType; value: string; }
-type TagPred = (tags: string[]) => boolean;
+export type TagPred = (tags: string[]) => boolean;
 
 export function tokenizeTagExpr(expr: string): TagTok[] {
     const tokens: TagTok[] = [];
@@ -114,9 +114,13 @@ export class TagExprParser {
     }
 }
 
+export function compileTagExpression(expr: string): TagPred {
+    const trimmed = expr.trim();
+    if (!trimmed) return () => true;
+    const tokens = tokenizeTagExpr(trimmed);
+    return new TagExprParser(tokens).parse();
+}
+
 export function matchesTagExpression(testTags: string[], expr: string): boolean {
-    if (!expr.trim()) return true;
-    const tokens = tokenizeTagExpr(expr);
-    const pred = new TagExprParser(tokens).parse();
-    return pred(testTags);
+    return compileTagExpression(expr)(testTags);
 }

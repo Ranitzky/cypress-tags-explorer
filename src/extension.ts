@@ -17,6 +17,8 @@ export function activate(context: vscode.ExtensionContext) {
     treeDataProvider: tagsProvider
   });
 
+  context.subscriptions.push(tagsTreeView);
+
   // Set default context for the toggle
   vscode.commands.executeCommand('setContext', 'tagsExplorer.viewAsTree', true);
 
@@ -74,7 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
       });
       if (filter !== undefined) {
         tagsProvider.setFilter(filter);
-        tagsTreeView.message = filter ? `Active Filter: ${filter}` : '';
+        tagsTreeView.message = tagsProvider.filterText ? `Active Filter: ${tagsProvider.filterText}` : '';
       }
     }),
     vscode.commands.registerCommand('tags-explorer.editFilter', async () => {
@@ -85,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
       });
       if (filter !== undefined) {
         tagsProvider.setFilter(filter);
-        tagsTreeView.message = filter ? `Active Filter: ${filter}` : '';
+        tagsTreeView.message = tagsProvider.filterText ? `Active Filter: ${tagsProvider.filterText}` : '';
       }
     }),
     vscode.commands.registerCommand('tags-explorer.clearFilter', () => {

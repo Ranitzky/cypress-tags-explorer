@@ -24,7 +24,7 @@ A powerful VS Code extension to easily manage, view, and organize Cypress tags r
 
 ## Tag Filter Syntax
 
-The powerful boolean expression language is supported when searching by **Tags** in both the Webview filter bar and the Sidebar native filter input. Filename and test-title filters always use a simple substring match.
+The powerful boolean expression language is supported when searching by **Tags** in both the Webview filter bar and the Sidebar filter dialog (accessed via the filter action). Filename and test-title filters always use a simple substring match.
 
 ### Operators
 
